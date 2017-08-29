@@ -13,6 +13,8 @@ from calmjs.parse.ruletypes import (
     OptionalNewline,
     Indent,
     Dedent,
+    PushScope,
+    PopScope,
 )
 from calmjs.parse.ruletypes import (
     Attr,
@@ -61,7 +63,8 @@ definitions = {
             Space, Operator(value='='), Space, Attr('initializer'),),),
     ),
     'VarDeclNoIn': (
-        Text(value='var '), Attr('identifier'), Optional('initializer', (
+        Text(value='var '), Attr(Declare('identifier')),
+        Optional('initializer', (
             Space, Operator(value='='), Space, Attr('initializer'),),),
     ),
     'GroupingOp': (
@@ -200,33 +203,40 @@ definitions = {
     ),
     'Catch': (
         Text(value='catch'), Space,
-        Text(value='('), Attr('identifier'), Text(value=')'), Space,
+        #PushCatchScope,
+        # Declare should be DeclareCatch
+        Text(value='('), Attr(Declare('identifier')), Text(value=')'), Space,
         Attr('elements'),
+        #PopCatchScope,
     ),
     'Finally': (
         Text(value='finally'), Space, Attr('elements'),
     ),
     'FuncDecl': (
         Text(value='function'), Optional('identifier', (Space,)),
-        Attr('identifier'), Text(value='('),
-        JoinAttr('parameters', value=(Text(value=','), Space)),
+        Attr(Declare('identifier')), Text(value='('),
+        PushScope,
+        JoinAttr(Declare('parameters'), value=(Text(value=','), Space)),
         Text(value=')'), Space,
         Text(value='{'),
         Indent, Newline,
         JoinAttr('elements', value=(Newline,)),
         Dedent, OptionalNewline,
         Text(value='}'),
+        PopScope,
     ),
     'FuncExpr': (
         Text(value='function'), Optional('identifier', (Space,)),
-        Attr('identifier'), Text(value='('),
-        JoinAttr('parameters', value=(Text(value=','), Space,)),
+        Attr(Declare('identifier')), Text(value='('),
+        PushScope,
+        JoinAttr(Declare('parameters'), value=(Text(value=','), Space,)),
         Text(value=')'), Space,
         Text(value='{'),
         Indent, Newline,
         JoinAttr('elements', value=(Newline,)),
         Dedent, OptionalNewline,
         Text(value='}'),
+        PopScope,
     ),
     'Conditional': (
         Attr('predicate'), Space, Text(value='?'), Space,

@@ -89,11 +89,13 @@ class BaseUnparser(object):
         self.token_handler = token_handler
         self.layout_handlers = {}
         self.deferred_handlers = {}
+        self.preprocess_hooks = []
 
         for rule in rules:
             r = rule()
             self.layout_handlers.update(r.get('layout_handlers', {}))
             self.deferred_handlers.update(r.get('deferred_handlers', {}))
+            self.preprocess_hooks.extend(r.get('preprocess_hooks', []))
 
         if layout_handlers:
             self.layout_handlers.update(layout_handlers)
