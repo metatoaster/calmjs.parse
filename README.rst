@@ -76,18 +76,36 @@ current Python environment.
 
 As this package uses |ply|, it requires the generation of optimization
 modules for its lexer.  The wheel distribution of |calmjs.parse| does
-not require this extra step as it contains these pre-generated modules
+not require this extra step as it contains these auto-generated modules
 for |ply| up to version 3.11 (the latest version available at the time
-of previous release), however the source tarball or if |ply| version
-that is installed lies outside of the supported versions, the following
-caveats will apply.
+of previous release).  As long as |ply| has no further updates going
+forward, and that ``pip`` installs the wheel distribution, no further
+action should be needed.
 
-If a more recent release of |ply| becomes available and the environment
-upgrades to that version, those pre-generated modules may become
-incompatible, which may result in a decreased performance and/or errors.
-A corrective action can be achieved through a `manual optimization`_
-step if a newer version of |calmjs.parse| is not available, or |ply| may
-be downgraded back to version 3.11 if possible.
+However, if the source tarball installation option was selected, or if
+|ply| has received a subsequent update and was installed which resulted
+in the currently installed |calmjs.parse| no longer having access to
+valid optimization modules, additional caveats will apply.
+
+The source repository and the source distribution does not contain any
+copies of these auto-generated modules, to eliminate the cost of having
+to manage and track auto-generated code in the commit history, and to
+simplify and reduce the size of the source distribution tarball.
+
+For the case of an existing Python environment, if a more recent release
+of |ply| becomes available and the environment upgrades to that version,
+those auto-generated modules may become incompatible, which may result
+in a decreased performance and/or errors.
+
+In both of the above cases, the automatic generation step will be taken
+upon the import of the relevant modules; should that fail, however, the
+recommended corrective action may be achieved through a `manual
+optimization`_ step, which will create the missing auto-generated module
+(applicable if a new wheel of |calmjs.parse| containing the updated
+auto-generated module is not available), or |ply| may be downgraded back
+to a supported version (such as 3.11) to reuse any existing
+auto-generated modules (this downgrade may or may not be possible as it
+may conflict with other dependencies in the given Python environment).
 
 Once the package is installed, the installation may be `tested`_ or be
 `used directly`_.
@@ -108,7 +126,8 @@ Alternatively, the git repository can be cloned directly and execute
 directory.
 
 A manual optimization step may need to be performed for platforms and
-systems that do not have utf8 as their default encoding.
+systems that do not have utf8 as their default encoding, or in
+circumstances where the automatic generation is inadequate.
 
 Manual optimization
 ~~~~~~~~~~~~~~~~~~~
@@ -128,7 +147,12 @@ fail, so for this reason |calmjs.parse| provide a helper module and
 executable that can be optionally invoked to ensure that the correct
 encoding be used to generate that file.  Other reasons where this may be
 necessary is to allow system administrators to do so for their end
-users, as they may not have write privileges at that level.
+users, as they may not have write privileges at that level; maintainers
+and developers in charge of making releases of |calmjs.parse| (such as
+those who are responsible for making available the wheels of this
+package on PyPI) will also need to make use of this step, for all
+supported version(s) of |ply| available on their chosen platform(s) and
+environment(s).
 
 To execute the optimizer from the shell, the provided helper script may
 be used like so:
@@ -140,9 +164,15 @@ be used like so:
 If warnings appear that warn that tokens are defined but not used, they
 may be safely ignored.
 
-This step is generally optionally for users who installed this package
+This step is typically optional for users who installed this package
 from PyPI via a Python wheel, provided the caveats as outlined in the
-installation section are addressed.
+installation section are addressed.  However, this step is required for
+those who wish to create distributions from the source repository in a
+manner that minimize end-user inconvenience (such as the Python wheels
+that were the very subject at the start of this paragraph), or those who
+wish to distribute their own modifications to the lexer or parser
+modules to end-users as a Python wheel, or otherwise final, ready-to-use
+distribution/package.
 
 .. _tested:
 
