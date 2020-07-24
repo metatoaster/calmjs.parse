@@ -13,11 +13,19 @@ PKGNAME = 'calmjs.parse'  # should derive this.
 
 class SRFactory(object):
     """
-    A factory that will generate a new subclass that has the specified
-    __str__ and __repr__ implementations.  Given the number of potential
+    A factory that will generate a new subclass that has the provided
+    __str__ and __repr__ implementations for every class found in the
+    provided module, resulting in an object that may be used in place of
+    the input module for referencing of the original class with the
+    provided custom methods.
+
+    The use case is to simplify the reuse of the generic AST node types
+    for specific parser implementations.  Given the number of potential
     nodes that a given AST might have, tagging the custom str/repr
     on the class definition itself will only happen once, saving the
-    cost of having to allocate all those references per object.
+    cost of having to allocate all those references per object (and the
+    time to manually subclass those types with the specific __str__
+    and __repr__).
     """
 
     def __init__(self, module, str_, repr_):
@@ -29,13 +37,11 @@ class SRFactory(object):
             return repr_(self)
 
         self.module = module
-        self.classes = {c.__name__: c for c in (
-            type(cls.__name__, (cls,), {
-                '__repr__': __repr__,
-                '__str__': __str__,
-            }) for cls in (
-                v for v in vars(module).values() if isinstance(v, type)
-            )
+        self.classes = {cls.__name__: type(cls.__name__, (cls,), {
+            '__repr__': __repr__,
+            '__str__': __str__,
+        }) for cls in (
+            v for v in vars(module).values() if isinstance(v, type)
         )}
 
     def __getattr__(self, attr):
